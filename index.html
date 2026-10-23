@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description" content="Exposição Digital Interativa do Livro Diva. Uma celebração à elegância e ao poder em Liquid Glass.">
+    <title>Diva | Exposição Editorial -  José de Alencar</title>
+    
+    <!-- Fontes Premium -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ==========================================================================
+           1. DESIGN SYSTEM & LIQUID GLASS VARIABLES (OTIMIZADO)
+           ========================================================================== */
+        :root {
+            --bg-color: #030305;
+            --text-primary: #F5F5F7;
+            --text-secondary: #86868B;
+            --accent-color: #D4AF37;
+            --accent-glow: rgba(212, 175, 55, 0.25);
+            
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-bg-hover: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-border-hover: rgba(212, 175, 55, 0.4);
+            --glass-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+            
+            /* Blurs reduzidos para alto desempenho */
+            --glass-blur: blur(10px);
+            
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Space Grotesk', sans-serif;
+            
+            --space-sm: 1rem;
+            --space-md: 2.5rem;
+            --space-lg: 5rem;
+            --space-xl: 8rem;
+            --container-padding: 5vw;
+            
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --transition-medium: transform 0.4s var(--ease-out-expo), opacity 0.4s var(--ease-out-expo);
+            --transition-fast: transform 0.2s var(--ease-out-expo), opacity 0.2s var(--ease-out-expo);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+            width: 100%;
+            scrollbar-width: none;
+        }
+
+        body {
+            overflow-x: hidden;
+            width: 100%;
+            position: relative;
+            background: #030305;
+            min-height: 100vh;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            body, a, button { cursor: none; }
+        }
+
+        ::-webkit-scrollbar { width: 0px; height: 0px; background: transparent; }
+
+        a, button { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* Fundo com Orbs Otimizados (Menos desfoque e GPU acelerada) */
+        .liquid-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(40px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.35;
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+            animation: floatOrb 16s ease-in-out infinite alternate;
+        }
+        .orb-1 { top: -5vw; left: -5vw; width: 40vw; height: 40vw; background: rgba(140, 90, 200, 0.2); }
+        .orb-2 { bottom: -10vw; right: -5vw; width: 45vw; height: 45vw; background: rgba(212, 175, 55, 0.15); animation-delay: -8s; }
+
+        @keyframes floatOrb {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            100% { transform: translate3d(30px, 40px, 0) scale(1.05); }
+        }
+
+        /* ==========================================================================
+           2. TELA DE CARREGAMENTO (PRELOADER)
+           ========================================================================== */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            background: #030305;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            will-change: opacity, visibility;
+        }
+
+        #preloader.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .loader-title {
+            font-family: var(--font-serif);
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-style: italic;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, #fff 30%, var(--accent-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            animation: fadeIn 0.8s ease forwards 0.2s;
+        }
+
+        .loader-progress {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            margin-top: var(--space-sm);
+            letter-spacing: 0.2em;
+            opacity: 0;
+            animation: fadeIn 0.8s ease forwards 0.4s;
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* ==========================================================================
+           3. CUSTOM CURSOR (COM GPU VELOZ)
+           ========================================================================== */
+        .cursor-dot, .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            will-change: transform;
+            display: none;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .cursor-dot, .cursor-outline { display: block; }
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-color);
+        }
+
+        .cursor-outline {
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            background: rgba(255, 255, 255, 0.02);
+            transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease;
+        }
+
+        body.cursor-hover .cursor-outline {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(212, 175, 55, 0.08);
+            border-color: var(--accent-color);
+        }
+
+        /* ==========================================================================
+           4. NAVEGAÇÃO
+           ========================================================================== */
+        nav {
+            position: fixed;
+            top: 1.2rem;
+            left: 50%;
+            transform: translate3d(-50%, 0, 0);
+            width: 90%;
+            max-width: 1200px;
+            padding: 0.9rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(15, 15, 20, 0.75);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.4s var(--ease-out-expo);
+            will-change: transform;
+        }
+
+        nav.hidden { transform: translate3d(-50%, -150%, 0); }
+
+        .logo {
+            font-family: var(--font-serif);
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            background: linear-gradient(135deg, #fff 40%, var(--accent-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+            position: relative;
+        }
+
+        @media (hover: hover) {
+            .nav-links a:hover { color: var(--text-primary); }
+        }
+
+        .nav-meta {
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+        }
+
+        /* ==========================================================================
+           5. HERO SECTION
+           ========================================================================== */
+        #hero {
+            min-height: 100vh;
+            min-height: 100dvh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 7rem var(--container-padding) 5rem;
+            overflow: hidden;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .hero-bg-text {
+            position: absolute;
+            top: 48%;
+            left: 50%;
+            transform: translate3d(-50%, -50%, 0);
+            font-family: var(--font-serif);
+            font-size: clamp(8rem, 22vw, 28rem);
+            color: rgba(255, 255, 255, 0.012);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            align-items: center;
+            gap: var(--space-lg);
+            z-index: 2;
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        .hero-text-content > * {
+            opacity: 0;
+            transform: translate3d(0, 20px, 0);
+            transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+        }
+
+        body.is-loaded .hero-text-content > *:nth-child(1) { opacity: 1; transform: translate3d(0,0,0); transition-delay: 0.1s; }
+        body.is-loaded .hero-text-content > *:nth-child(2) { opacity: 1; transform: translate3d(0,0,0); transition-delay: 0.2s; }
+        body.is-loaded .hero-text-content > *:nth-child(3) { opacity: 1; transform: translate3d(0,0,0); transition-delay: 0.3s; }
+        body.is-loaded .hero-text-content > *:nth-child(4) { opacity: 1; transform: translate3d(0,0,0); transition-delay: 0.4s; }
+
+        .hero-subtitle {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: var(--accent-color);
+            margin-bottom: var(--space-sm);
+            display: block;
+        }
+
+        .hero-title {
+            font-family: var(--font-serif);
+            font-size: clamp(2.8rem, 6.2vw, 7rem);
+            line-height: 1.05;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin-bottom: var(--space-md);
+        }
+
+        .hero-title i {
+            font-style: italic;
+            background: linear-gradient(135deg, #fff 20%, var(--accent-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding-left: 0.3rem;
+        }
+
+        .hero-desc {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 440px;
+            line-height: 1.7;
+            margin-bottom: var(--space-lg);
+            font-weight: 300;
+        }
+
+        .btn-magnetic {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.1rem 2.8rem;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-primary);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+            will-change: transform;
+        }
+
+        .btn-magnetic span { position: relative; z-index: 2; }
+
+        @media (hover: hover) {
+            .btn-magnetic:hover {
+                border-color: var(--glass-border-hover);
+                background-color: var(--glass-bg-hover);
+                transform: translate3d(0, -2px, 0);
+            }
+        }
+
+        .hero-image-wrapper {
+            position: relative;
+            width: 100%;
+            height: 60vh;
+            height: 60dvh;
+            overflow: hidden;
+            border-radius: 24px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            opacity: 0;
+            transform: translate3d(0, 20px, 0);
+            transition: opacity 1s var(--ease-out-expo), transform 1s var(--ease-out-expo);
+        }
+
+        body.is-loaded .hero-image-wrapper {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%) contrast(1.1);
+            transition: transform 0.6s var(--ease-out-expo), filter 0.6s var(--ease-out-expo);
+            will-change: transform, filter;
+        }
+
+        @media (hover: hover) {
+            .hero-image-wrapper:hover .hero-image {
+                transform: scale(1.03);
+                filter: grayscale(0%) contrast(1);
+            }
+        }
+
+        .marquee-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.1rem 0;
+            background: rgba(15, 15, 20, 0.6);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+            overflow: hidden;
+            z-index: 3;
+        }
+
+        .marquee-content {
+            display: flex;
+            white-space: nowrap;
+            width: max-content;
+            will-change: transform;
+            animation: scrollMarquee 35s linear infinite;
+        }
+
+        .marquee-content span {
+            font-family: var(--font-serif);
+            font-size: 1.05rem;
+            font-style: italic;
+            padding: 0 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .marquee-content span i { color: var(--accent-color); font-style: normal; }
+
+        @keyframes scrollMarquee {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-50%, 0, 0); }
+        }
+
+        /* ==========================================================================
+           6. SEÇÃO SINOPSE
+           ========================================================================== */
+        #synopsis {
+            padding: var(--space-xl) var(--container-padding);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-lg);
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .synopsis-sticky {
+            position: sticky;
+            top: 15vh;
+            height: fit-content;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--accent-color);
+            margin-bottom: var(--space-sm);
+            display: block;
+        }
+
+        .synopsis-title {
+            font-family: var(--font-serif);
+            font-size: clamp(2.2rem, 4.5vw, 4.2rem);
+            line-height: 1.1;
+            font-weight: 400;
+        }
+
+        .synopsis-text {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            padding: 3.5rem;
+            border-radius: 28px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .synopsis-text p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-md);
+            font-weight: 300;
+        }
+
+        .synopsis-text p:first-of-type::first-letter {
+            font-family: var(--font-serif);
+            font-size: 3.8rem;
+            float: left;
+            line-height: 0.8;
+            margin-right: 0.8rem;
+            margin-top: 0.2rem;
+            color: var(--text-primary);
+        }
+
+        .pull-quote {
+            border-left: 2px solid var(--accent-color);
+            padding: 1.5rem;
+            margin: var(--space-md) 0;
+            background: rgba(255, 255, 255, 0.015);
+            border-radius: 0 12px 12px 0;
+        }
+
+        .pull-quote p {
+            font-family: var(--font-serif);
+            font-size: 1.4rem;
+            font-style: italic;
+            color: var(--text-primary);
+            line-height: 1.4;
+            margin-bottom: 0;
+        }
+
+        /* ==========================================================================
+           7. DETALHES DO LIVRO
+           ========================================================================== */
+        #details {
+            padding: var(--space-xl) var(--container-padding);
+            position: relative;
+            z-index: 2;
+        }
+
+        .details-header {
+            text-align: center;
+            margin-bottom: var(--space-lg);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .detail-item {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+            will-change: transform;
+        }
+
+        @media (hover: hover) {
+            .detail-item:hover {
+                border-color: var(--glass-border-hover);
+                transform: translate3d(0, -5px, 0);
+                background: var(--glass-bg-hover);
+            }
+        }
+
+        .detail-item i {
+            font-size: 1.3rem;
+            color: var(--accent-color);
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .detail-item h4 {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+
+        .detail-item p {
+            font-family: var(--font-serif);
+            font-size: 1.15rem;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .book-showcase {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: var(--space-lg);
+            perspective: 1000px;
+            gap: 2.5rem;
+        }
+
+        .book-cover {
+            width: 250px;
+            height: 375px;
+            background: url('https://i.supaimg.com/ecba0870-938e-4236-bf21-d1f39b84eb15/93aa04ab-e9fc-4da9-b604-4991a10c05a2.png') center/cover;
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            transition: transform 0.2s ease-out;
+            transform-style: preserve-3d;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.2);
+            will-change: transform;
+        }
+
+        /* ==========================================================================
+           8. SEÇÃO FANTASMA
+           ========================================================================== */
+        #phantom-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            background: rgba(3, 3, 5, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 20000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s;
+            will-change: opacity, visibility;
+        }
+
+        #phantom-section.active {
+            opacity: 1;
+            pointer-events: auto;
+            visibility: visible;
+        }
+
+        .phantom-ambient {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .phantom-close {
+            position: absolute;
+            top: 2.5rem;
+            right: 3rem;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            z-index: 20002;
+            box-shadow: var(--glass-shadow);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .phantom-close:hover {
+            background: var(--accent-color);
+            color: #030305;
+            border-color: var(--accent-color);
+            transform: scale(1.05);
+        }
+
+        .magic-book-container {
+            position: relative;
+            z-index: 20001;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .magic-book-page-indicator {
+            font-family: var(--font-serif);
+            font-size: 0.85rem;
+            letter-spacing: 0.3em;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .magic-book {
+            width: 100%;
+            height: 460px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+        }
+
+        .magic-page-half {
+            flex: 1;
+            padding: 3.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            background: rgba(20, 20, 25, 0.4);
+            color: var(--text-primary);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            will-change: opacity, transform;
+        }
+
+        .magic-page-half.left {
+            border-right: 1px solid var(--glass-border);
+        }
+
+        .magic-page-title {
+            font-family: var(--font-serif);
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #fff 30%, var(--accent-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.2rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 0.6rem;
+        }
+
+        .magic-page-text {
+            font-family: var(--font-serif);
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .magic-book-controls {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+            align-items: center;
+        }
+
+        .magic-control-btn {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            color: var(--accent-color);
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            box-shadow: var(--glass-shadow);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .magic-control-btn:hover:not(:disabled) {
+            background: var(--accent-color);
+            color: #030305;
+            border-color: var(--accent-color);
+        }
+
+        .magic-control-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* ==========================================================================
+           9. FOOTER
+           ========================================================================== */
+        footer {
+            padding: var(--space-xl) var(--container-padding) var(--space-md);
+            border-top: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            text-align: center;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer-title {
+            font-family: var(--font-serif);
+            font-size: clamp(3.5rem, 14vw, 12rem);
+            line-height: 0.85;
+            letter-spacing: -0.04em;
+            background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.02) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: var(--space-lg);
+        }
+
+        .credits {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-lg);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-lg);
+        }
+
+        .credit-block h4 {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent-color);
+            margin-bottom: 0.4rem;
+        }
+
+        .credit-block p {
+            font-family: var(--font-serif);
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-top: 1px solid var(--glass-border);
+            padding-top: var(--space-md);
+        }
+
+        /* ==========================================================================
+           10. SCROLL REVEAL (OTIMIZADO)
+           ========================================================================== */
+        .reveal {
+            opacity: 0;
+            transform: translate3d(0, 20px, 0);
+            transition: opacity 0.6s var(--ease-out-expo), transform 0.6s var(--ease-out-expo);
+            will-change: opacity, transform;
+        }
+
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+
+        /* ==========================================================================
+           11. RESPONSIVIDADE
+           ========================================================================== */
+        @media (max-width: 1200px) {
+            .details-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 900px) {
+            nav { width: 92%; padding: 0.8rem 1.5rem; top: 1rem; }
+            #hero { padding-top: 6rem; justify-content: flex-start; }
+            .hero-grid { grid-template-columns: 1fr; gap: 2.5rem; margin-top: 2vh; }
+            .hero-image-wrapper { height: 42vh; height: 42dvh; }
+            #synopsis { grid-template-columns: 1fr; gap: 2rem; padding-top: 5rem; }
+            .synopsis-sticky { position: relative; top: 0; }
+            .synopsis-text { padding: 2.5rem; }
+            .magic-book { height: 380px; }
+            .magic-page-half { padding: 2rem 1.5rem; }
+        }
+
+        @media (max-width: 600px) {
+            :root { --container-padding: 6vw; --space-xl: 5rem; }
+            .nav-links { gap: 1.2rem; }
+            .nav-links a { font-size: 0.65rem; }
+            .nav-meta { display: none; }
+            .hero-title { font-size: 2.4rem; }
+            .hero-desc { font-size: 0.95rem; }
+            .details-grid { grid-template-columns: 1fr; gap: 0.8rem; }
+            .credits { flex-direction: column; gap: 1.5rem; }
+            .footer-bottom { flex-direction: column; gap: 0.8rem; align-items: center; }
+            .book-cover { width: 200px; height: 300px; }
+            .magic-book { height: 340px; }
+            .magic-page-title { font-size: 1.2rem; }
+            .magic-page-text { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ORBS LÍQUIDOS DE FUNDO -->
+    <div class="liquid-orb orb-1"></div>
+    <div class="liquid-orb orb-2"></div>
+
+    <!-- PRELOADER -->
+    <div id="preloader">
+        <div class="loader-content">
+            <h1 class="loader-title">Diva</h1>
+            <div class="loader-progress" id="progress-text">0%</div>
+        </div>
+    </div>
+
+    <!-- CUSTOM CURSOR -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- NAVEGAÇÃO -->
+    <nav id="navbar">
+        <div class="logo">Diva</div>
+        <ul class="nav-links">
+            <li><a href="#hero">Início</a></li>
+            <li><a href="#synopsis">Sinopse</a></li>
+            <li><a href="#details">O Livro</a></li>
+        </ul>
+        <div class="nav-meta">José de Alencar</div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section id="hero">
+        <div class="hero-bg-text">VOGUE</div>
+        
+        <div class="hero-grid">
+            <div class="hero-text-content">
+                <span class="hero-subtitle">Exposição Digital Interativa</span>
+                <h1 class="hero-title">
+                    Diva Entre o Amor<br>
+                    <i>e a Paixão</i>
+                </h1>
+                <p class="hero-desc">
+                    Uma imersão literária no universo de Diva, de José de Alencar, explorando a beleza, o orgulho e os conflitos amorosos de Emília Duarte, uma mulher que desafia as expectativas sociais e revela a complexidade dos sentimentos na sociedade brasileira do século XIX.
+                </p>
+                <a href="#synopsis" class="btn-magnetic magnetic-btn">
+                    <span>Explorar Exposição</span>
+                </a>
+            </div>
+            
+            <div class="hero-image-wrapper">
+                <img src="https://i.supaimg.com/ecba0870-938e-4236-bf21-d1f39b84eb15/93aa04ab-e9fc-4da9-b604-4991a10c05a2.png" alt="Ensaio Editorial Diva" class="hero-image" loading="eager">
+            </div>
+        </div>
+
+        <div class="marquee-container">
+            <div class="marquee-content">
+                <span>Diva <i>•</i> José de Alencar <i>•</i> Amor <i>•</i> Orgulho <i>•</i> Sociedade <i>•</i> Sentimentos <i>•</i> Impacto literário</span>
+                <span>Diva <i>•</i> José de Alencar <i>•</i> Amor <i>•</i> Orgulho <i>•</i> Sociedade <i>•</i> Sentimentos <i>•</i> Impacto literário</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- SINOPSE -->
+    <section id="synopsis">
+        <div class="synopsis-sticky reveal">
+            <span class="section-label">01 // Sinopse</span>
+            <h2 class="synopsis-title">A construção<br>de um ícone.</h2>
+        </div>
+        
+        <div class="synopsis-text">
+            <p class="reveal">"Diva", de José de Alencar, conta a história de Emília e Augusto, marcada pelo amor, pelo orgulho e por conflitos sentimentais. Ao longo da narrativa, os personagens enfrentam dificuldades para compreender e expressar seus sentimentos, mostrando os desafios dos relacionamentos e os costumes da sociedade brasileira do século XIX.</p>
+            
+            <div class="pull-quote reveal">
+                <p>"Amar é sentir a alma dividida entre o orgulho de resistir e o desejo de se entregar."</p>
+            </div>
+            
+            <p class="reveal">A obra revela como as aparências e o orgulho podem esconder sentimentos verdadeiros. Entre aproximações, dúvidas e desentendimentos, o romance mostra a complexidade do amor e a dificuldade de revelar o que realmente existe no coração.</p>
+        </div>
+    </section>
+
+    <!-- DETALHES DO LIVRO -->
+    <section id="details">
+        <div class="details-header reveal">
+            <span class="section-label">02 // Ficha Técnica</span>
+            <h2 class="synopsis-title">Detalhes da Obra</h2>
+        </div>
+        
+        <div class="details-grid">
+            <div class="detail-item reveal">
+                <i>✦</i>
+                <h4>Livro</h4>
+                <p>DIVA</p>
+            </div>
+            <div class="detail-item reveal">
+                <i>✦</i>
+                <h4>Ano de publicação</h4>
+                <p>1864</p>
+            </div>
+            <div class="detail-item reveal">
+                <i>✦</i>
+                <h4>Gênero</h4>
+                <p>Romance</p>
+            </div>
+            <div class="detail-item reveal">
+                <i>✦</i>
+                <h4>Autor</h4>
+                <p>José de Alencar</p>
+            </div>
+            <div class="detail-item reveal">
+                <i>✦</i>
+                <h4>Personagens principais</h4>
+                <p>Emília e Augusto</p>
+            </div>
+        </div>
+
+        <div class="book-showcase reveal">
+            <div class="book-cover" id="book-tilt"></div>
+            <button class="btn-magnetic magnetic-btn" id="open-phantom-btn" type="button">
+                <span>Abrir Exposição digital</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- SEÇÃO FANTASMA -->
+    <section id="phantom-section">
+        <div class="phantom-ambient"></div>
+        <button class="phantom-close" id="close-phantom-btn" title="Fechar">&times;</button>
+        
+        <div class="magic-book-container">
+            <div class="magic-book-page-indicator" id="page-indicator">Página 1 de 4</div>
+            
+            <div class="magic-book">
+                <div class="magic-page-half left">
+                    <h3 class="magic-page-title" id="left-title">Prefácio Secreto</h3>
+                    <p class="magic-page-text" id="left-text">Nas entrelinhas da alta sociedade do século XIX, os segredos de Emília guardavam mistérios que nenhum salão carioca ousava decifrar em voz alta.</p>
+                </div>
+                <div class="magic-page-half right">
+                    <h3 class="magic-page-title" id="right-title">A Dualidade</h3>
+                    <p class="magic-page-text" id="right-text">Augusto encontrava na altivez da jovem não apenas um desafio ao seu orgulho, mas o reflexo de sua própria alma dividida entre a razão e a paixão desmedida.</p>
+                </div>
+            </div>
+
+            <div class="magic-book-controls">
+                <button class="magic-control-btn" id="prev-page-btn" disabled>&larr; Anterior</button>
+                <button class="magic-control-btn" id="next-page-btn">Avançar &rarr;</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <h2 class="footer-title">Diva</h2>
+        
+        <div class="credits">
+            <div class="credit-block">
+                <h4>Direção Criativa</h4>
+                <p>Valter Cezar</p>
+            </div>
+            <div class="credit-block">
+                <h4>Design Editorial</h4>
+                <p>Davi Ferraz</p>
+            </div>
+            <div class="credit-block">
+                <h4>imagens</h4>
+                <p>By Google</p>
+            </div>
+            <div class="credit-block">
+                <h4>Desenvolvimento</h4>
+                <p>Davi Ferraz, Edivaldo Ribeiro, Gabriel Diniz, Heitor Almeida, Fábio Renan</p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <span>&copy; 2026 Diva.</span>
+            <span>Liquid Glass Edition</span>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT ALTAMENTE OTIMIZADO -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            /* 1. PRELOADER */
+            const preloader = document.getElementById('preloader');
+            const progressText = document.getElementById('progress-text');
+            let progress = 0;
+
+            document.body.style.overflow = 'hidden';
+
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 25) + 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    setTimeout(() => {
+                        preloader.classList.add('hidden');
+                        document.body.style.overflow = '';
+                        document.body.classList.add('is-loaded');
+                    }, 150);
+                }
+                progressText.innerText = `${progress}%`;
+            }, 30);
+
+            /* 2. CUSTOM CURSOR (COM THROTTLING DE BARS) */
+            const cursorDot = document.querySelector('.cursor-dot');
+            const cursorOutline = document.querySelector('.cursor-outline');
+            const isFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+            if (isFinePointer && cursorDot && cursorOutline) {
+                let mouseX = 0, mouseY = 0;
+                let outlineX = 0, outlineY = 0;
+                let ticking = false;
+
+                window.addEventListener('mousemove', (e) => {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+
+                    if (!ticking) {
+                        window.requestAnimationFrame(() => {
+                            cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
+                            outlineX += (mouseX - outlineX) * 0.25;
+                            outlineY += (mouseY - outlineY) * 0.25;
+                            cursorOutline.style.transform = `translate3d(${outlineX}px, ${outlineY}px, 0) translate(-50%, -50%)`;
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                }, { passive: true });
+
+                document.addEventListener('mouseover', (e) => {
+                    if (e.target.closest('a, button, .detail-item, .book-cover')) {
+                        document.body.classList.add('cursor-hover');
+                    }
+                }, { passive: true });
+
+                document.addEventListener('mouseout', (e) => {
+                    if (e.target.closest('a, button, .detail-item, .book-cover')) {
+                        document.body.classList.remove('cursor-hover');
+                    }
+                }, { passive: true });
+            }
+
+            /* 3. 3D TILT EFFECT OTIMIZADO */
+            const bookTilt = document.getElementById('book-tilt');
+            
+            if (bookTilt && isFinePointer) {
+                let tiltTicking = false;
+
+                bookTilt.addEventListener('mousemove', (e) => {
+                    if (!tiltTicking) {
+                        window.requestAnimationFrame(() => {
+                            const rect = bookTilt.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            const y = e.clientY - rect.top;
+                            const rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -8;
+                            const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 8;
+                            
+                            bookTilt.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                            tiltTicking = false;
+                        });
+                        tiltTicking = true;
+                    }
+                }, { passive: true });
+
+                bookTilt.addEventListener('mouseleave', () => {
+                    bookTilt.style.transform = `rotateX(0deg) rotateY(0deg)`;
+                });
+            }
+
+            /* 4. SCROLL REVEAL OTIMIZADO */
+            const revealElements = document.querySelectorAll('.reveal');
+            
+            const revealObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            revealElements.forEach(el => revealObserver.observe(el));
+
+            /* 5. NAVBAR AUTO-HIDE PASSIVO */
+            let lastScrollY = window.scrollY;
+            const navbar = document.getElementById('navbar');
+
+            window.addEventListener('scroll', () => {
+                const currentScrollY = window.scrollY;
+                if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                    navbar.classList.add('hidden');
+                } else {
+                    navbar.classList.remove('hidden');
+                }
+                lastScrollY = currentScrollY;
+            }, { passive: true });
+
+            /* 6. SEÇÃO FANTASMA */
+            const phantomSection = document.getElementById('phantom-section');
+            const openPhantomBtn = document.getElementById('open-phantom-btn');
+            const closePhantomBtn = document.getElementById('close-phantom-btn');
+
+            const prevPageBtn = document.getElementById('prev-page-btn');
+            const nextPageBtn = document.getElementById('next-page-btn');
+            const pageIndicator = document.getElementById('page-indicator');
+            const leftTitle = document.getElementById('left-title');
+            const leftText = document.getElementById('left-text');
+            const rightTitle = document.getElementById('right-title');
+            const rightText = document.getElementById('right-text');
+
+            const bookSpreads = [
+                {
+                    leftTitle: "Prefácio Secreto",
+                    leftText: "Nas entrelinhas da alta sociedade do século XIX, os segredos de Emília guardavam mistérios que nenhum salão carioca ousava decifrar em voz alta.",
+                    rightTitle: "A Dualidade",
+                    rightText: "Augusto encontrava na altivez da jovem não apenas um desafio ao seu orgulho, mas o reflexo de sua própria alma dividida entre a razão e a paixão desmedida."
+                },
+                {
+                    leftTitle: "O Encontro no Passeio",
+                    leftText: "Sob o véu discreto das tardes fluminenses, os olhares cruzados valiam mais do que mil palavras permitidas pelas regras rígidas da etiqueta.",
+                    rightTitle: "Silêncios Eloquentes",
+                    rightText: "A distância mantida entre eles não era fruto de indiferença, mas sim a muralha invisível erguida pelo orgulho que protegia corações apaixonados."
+                },
+                {
+                    leftTitle: "A Revelação",
+                    leftText: "Quando as máscaras sociais finalmente caem, o que resta é a crua e bela vulnerabilidade de quem ousa amar sem reservas na literatura de Alencar.",
+                    rightTitle: "Epílogo Oculto",
+                    rightText: "Este fragmento permanece guardado nas páginas do tempo, acessível apenas àqueles que decidem olhar além do visível."
+                }
+            ];
+
+            let currentSpreadIndex = 0;
+
+            function updateBookContent() {
+                const spread = bookSpreads[currentSpreadIndex];
+                const halves = document.querySelectorAll('.magic-page-half');
+                
+                halves.forEach(half => {
+                    half.style.opacity = '0';
+                    half.style.transform = 'translate3d(0, 8px, 0)';
+                });
+
+                setTimeout(() => {
+                    leftTitle.innerText = spread.leftTitle;
+                    leftText.innerText = spread.leftText;
+                    rightTitle.innerText = spread.rightTitle;
+                    rightText.innerText = spread.rightText;
+                    
+                    pageIndicator.innerText = `Páginas ${currentSpreadIndex * 2 + 1}-${currentSpreadIndex * 2 + 2} de ${bookSpreads.length * 2}`;
+                    
+                    prevPageBtn.disabled = currentSpreadIndex === 0;
+                    nextPageBtn.disabled = currentSpreadIndex === bookSpreads.length - 1;
+
+                    halves.forEach(half => {
+                        half.style.opacity = '1';
+                        half.style.transform = 'translate3d(0, 0, 0)';
+                    });
+                }, 200);
+            }
+
+            openPhantomBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentSpreadIndex = 0;
+                updateBookContent();
+                phantomSection.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            closePhantomBtn.addEventListener('click', () => {
+                phantomSection.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            nextPageBtn.addEventListener('click', () => {
+                if (currentSpreadIndex < bookSpreads.length - 1) {
+                    currentSpreadIndex++;
+                    updateBookContent();
+                }
+            });
+
+            prevPageBtn.addEventListener('click', () => {
+                if (currentSpreadIndex > 0) {
+                    currentSpreadIndex--;
+                    updateBookContent();
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
